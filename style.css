@@ -1,0 +1,217 @@
+:root {
+  --bg-1: #f2efe3;
+  --bg-2: #d8eddf;
+  --ink: #1f2937;
+  --muted: #4b5563;
+  --card: rgba(255, 255, 255, 0.72);
+  --line: rgba(31, 41, 55, 0.12);
+  --accent: #f97316;
+  --accent-2: #2b8a7e;
+  --danger: #dc2626;
+  --shadow: 0 18px 40px rgba(31, 41, 55, 0.15);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 15% 10%, #ffe4bf 0%, transparent 32%),
+    radial-gradient(circle at 85% 80%, #b8f5d3 0%, transparent 35%),
+    linear-gradient(130deg, var(--bg-1), var(--bg-2));
+}
+
+.app {
+  width: min(1120px, calc(100vw - 2rem));
+  margin: 2rem auto 3rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0.02em;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+}
+
+.subtitle {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  max-width: 44rem;
+}
+
+.controls {
+  margin: 1.4rem 0 1.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.slot-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--card);
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow);
+}
+
+select,
+button,
+input {
+  font: inherit;
+}
+
+select {
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  padding: 0.32rem 0.5rem;
+}
+
+button {
+  border: 0;
+  border-radius: 0.9rem;
+  background: #111827;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.62rem 0.95rem;
+  transition: transform 0.12s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.danger {
+  background: var(--danger);
+}
+
+.pad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.95rem;
+}
+
+.pad-card {
+  padding: 0.92rem;
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.pad-button {
+  width: 100%;
+  min-height: 88px;
+  border-radius: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(145deg, #111827, #374151);
+}
+
+.pad-button.ready {
+  background: linear-gradient(145deg, #0f766e, #115e59);
+}
+
+.pad-button.playing {
+  background: linear-gradient(145deg, #ea580c, #c2410c);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+}
+
+.pad-meta {
+  margin-top: 0.65rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.file-label {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.name-label {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.name-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.file-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.record-row {
+  display: flex;
+}
+
+.record-button {
+  width: 100%;
+  background: linear-gradient(145deg, #0369a1, #075985);
+}
+
+.record-button.recording {
+  background: linear-gradient(145deg, #dc2626, #b91c1c);
+  animation: recordingPulse 1s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.34);
+  }
+
+  100% {
+    box-shadow: 0 0 0 11px rgba(220, 38, 38, 0);
+  }
+}
+
+.loop-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  min-height: 1.2rem;
+  word-break: break-word;
+}

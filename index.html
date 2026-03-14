@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loop Pad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <p class="eyebrow">MIDI Pad Inspired</p>
+        <h1>Loop Pad</h1>
+        <p class="subtitle">
+          ボタンごとに音源を割り当てて、ワンタップで再生。ループも切り替えできます。
+        </p>
+      </header>
+
+      <section class="controls" aria-label="global controls">
+        <label class="slot-control">
+          パッド数
+          <select id="pad-count">
+            <option value="4">4</option>
+            <option value="8" selected>8</option>
+            <option value="12">12</option>
+            <option value="16">16</option>
+            <option value="24">24</option>
+            <option value="32">32</option>
+          </select>
+        </label>
+        <button id="mic-toggle" type="button">マイク接続</button>
+        <button id="stop-all" type="button" class="danger">全停止</button>
+        <button id="save-recordings" type="button">録音を一括保存</button>
+      </section>
+
+      <section id="pad-grid" class="pad-grid" aria-label="pad grid"></section>
+    </main>
+
+    <template id="pad-template">
+      <article class="pad-card">
+        <button type="button" class="pad-button">Pad</button>
+        <div class="pad-meta">
+          <label class="name-label">
+            パッド名
+            <input
+              type="text"
+              class="name-input"
+              maxlength="24"
+              placeholder="例: Kick"
+            />
+          </label>
+          <label class="file-label">
+            音源を割り当て
+            <input type="file" class="file-input" accept="audio/*" />
+          </label>
+          <div class="record-row">
+            <button type="button" class="record-button">録音開始</button>
+          </div>
+          <label class="loop-toggle">
+            <input type="checkbox" class="loop-input" />
+            ループ
+          </label>
+          <p class="status">未設定</p>
+        </div>
+      </article>
+    </template>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+      defer
+    ></script>
+    <script src="./script.js" defer></script>
+  </body>
+</html>
