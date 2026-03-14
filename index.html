@@ -37,6 +37,17 @@
         <button id="mic-toggle" type="button">マイク接続</button>
         <button id="stop-all" type="button" class="danger">全停止</button>
         <button id="save-recordings" type="button">録音を一括保存</button>
+        <button id="load-zip" type="button">ZIP読み込み</button>
+        <button id="load-folder" type="button">フォルダ読み込み</button>
+        <input id="zip-input" type="file" accept=".zip,application/zip" hidden />
+        <input
+          id="folder-input"
+          type="file"
+          accept="audio/*"
+          webkitdirectory
+          multiple
+          hidden
+        />
       </section>
 
       <section id="pad-grid" class="pad-grid" aria-label="pad grid"></section>
