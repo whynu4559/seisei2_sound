@@ -4,6 +4,10 @@ const padCountSelect = document.getElementById("pad-count");
 const stopAllButton = document.getElementById("stop-all");
 const saveRecordingsButton = document.getElementById("save-recordings");
 const micToggleButton = document.getElementById("mic-toggle");
+const loadZipButton = document.getElementById("load-zip");
+const loadFolderButton = document.getElementById("load-folder");
+const zipInput = document.getElementById("zip-input");
+const folderInput = document.getElementById("folder-input");
 
 const padStates = [];
 let padCount = Number(padCountSelect.value);
@@ -147,10 +151,28 @@ function inferExtensionFromMimeType(mimeType = "") {
   return "";
 }
 
+function inferMimeTypeFromExtension(extension = "") {
+  const normalized = extension.toLowerCase();
+  if (normalized === "mp3") return "audio/mpeg";
+  if (normalized === "wav") return "audio/wav";
+  if (normalized === "m4a") return "audio/mp4";
+  if (normalized === "aac") return "audio/aac";
+  if (normalized === "ogg") return "audio/ogg";
+  if (normalized === "flac") return "audio/flac";
+  if (normalized === "webm") return "audio/webm";
+  if (normalized === "mp4") return "audio/mp4";
+  return "";
+}
+
 function getExtensionFromName(fileName = "") {
   const lastDot = fileName.lastIndexOf(".");
   if (lastDot < 0) return "";
   return fileName.slice(lastDot + 1).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getFileStem(fileName = "") {
+  const base = fileName.split("/").pop() || fileName;
+  return base.replace(/\.[^.]+$/, "");
 }
 
 function sanitizeFilePart(text, fallbackText) {
@@ -160,6 +182,37 @@ function sanitizeFilePart(text, fallbackText) {
     .trim();
 
   return cleaned || fallbackText;
+}
+
+function isAudioLikeFileName(fileName = "") {
+  return /\.(mp3|wav|m4a|aac|ogg|flac|webm|mp4)$/i.test(fileName);
+}
+
+function parsePadFileName(fileName = "") {
+  const baseName = fileName.split("/").pop() || fileName;
+  const match = baseName.match(/^(\d+)_\((.+)\)\.([^.]+)$/i);
+
+  if (!match) {
+    return {
+      padNumber: null,
+      padName: "",
+      extension: getExtensionFromName(baseName),
+      baseName,
+    };
+  }
+
+  return {
+    padNumber: Number(match[1]),
+    padName: match[2],
+    extension: match[3].toLowerCase(),
+    baseName,
+  };
+}
+
+function getRecommendedPadCount(required) {
+  const options = [4, 8, 12, 16, 24, 32];
+  const exact = options.find((value) => value >= required);
+  return exact || 32;
 }
 
 function getSupportedMimeType() {
@@ -234,6 +287,171 @@ function assignAudio(state, audioSource, label, options = {}) {
 
   setStatus(state, `設定: ${label}`);
   updatePadVisual(state);
+}
+
+function setPadName(state, name) {
+  const fallback = `Pad ${state.id}`;
+  const displayName = (name || "").trim() || fallback;
+  state.name = displayName;
+  state.refs.nameInput.value = displayName;
+  updatePadVisual(state);
+}
+
+function normalizeImportedBlob(blob, extension) {
+  if (blob.type && blob.type !== "application/octet-stream") {
+    return blob;
+  }
+
+  const mimeType = inferMimeTypeFromExtension(extension);
+  if (!mimeType) return blob;
+  return new Blob([blob], { type: mimeType });
+}
+
+function ensurePadSlots(requiredPadCount) {
+  if (requiredPadCount <= padStates.length) return;
+
+  const nextCount = getRecommendedPadCount(requiredPadCount);
+  if (nextCount <= padStates.length) return;
+
+  padCount = nextCount;
+  padCountSelect.value = String(nextCount);
+  renderPads(nextCount);
+}
+
+function assignImportedItems(items) {
+  if (activeRecordingState) {
+    window.alert("録音中は読み込みできません。録音を停止してから実行してください。");
+    return;
+  }
+
+  if (!items.length) {
+    window.alert("読み込める音声ファイルがありませんでした。");
+    return;
+  }
+
+  const requiredByPadNo = items.reduce((max, item) => {
+    return Math.max(max, item.padNumber || 0);
+  }, 0);
+  const requiredByCount = Math.min(items.length, 32);
+  const required = Math.min(32, Math.max(requiredByPadNo, requiredByCount));
+
+  ensurePadSlots(required);
+
+  const assignedPadIds = new Set();
+  const pending = [];
+  let overflowCount = 0;
+  let assignedCount = 0;
+
+  items.forEach((item) => {
+    if (item.padNumber) {
+      if (item.padNumber >= 1 && item.padNumber <= padStates.length) {
+        const state = padStates[item.padNumber - 1];
+        const padName = item.padName || getFileStem(item.fileName);
+        setPadName(state, padName);
+        assignAudio(state, item.blob, item.fileName, {
+          kind: item.kind,
+          extension: item.extension,
+        });
+        assignedPadIds.add(state.id);
+        assignedCount += 1;
+        return;
+      }
+
+      overflowCount += 1;
+      return;
+    }
+
+    pending.push(item);
+  });
+
+  let cursor = 0;
+
+  pending.forEach((item) => {
+    while (cursor < padStates.length && assignedPadIds.has(padStates[cursor].id)) {
+      cursor += 1;
+    }
+
+    if (cursor >= padStates.length) {
+      overflowCount += 1;
+      return;
+    }
+
+    const state = padStates[cursor];
+    const padName = item.padName || getFileStem(item.fileName);
+    setPadName(state, padName);
+    assignAudio(state, item.blob, item.fileName, {
+      kind: item.kind,
+      extension: item.extension,
+    });
+    assignedPadIds.add(state.id);
+    assignedCount += 1;
+    cursor += 1;
+  });
+
+  if (overflowCount > 0) {
+    window.alert(`上限32パッドのため ${overflowCount} 件は読み込みできませんでした。`);
+  }
+
+  if (assignedCount > 0 && padStates[0]) {
+    setStatus(padStates[0], `${assignedCount}件の音源を読み込みました`);
+  }
+}
+
+async function importFromZipFile(zipFile) {
+  if (!canExportZip()) {
+    window.alert("ZIPライブラリの読み込みに失敗しました。ページを再読み込みしてください。");
+    return;
+  }
+
+  const zip = await JSZip.loadAsync(zipFile);
+  const entries = Object.values(zip.files)
+    .filter((entry) => !entry.dir && isAudioLikeFileName(entry.name))
+    .sort((a, b) => a.name.localeCompare(b.name, "ja"));
+
+  const items = await Promise.all(
+    entries.map(async (entry) => {
+      const parsed = parsePadFileName(entry.name);
+      const extension = parsed.extension || getExtensionFromName(parsed.baseName) || "webm";
+      const rawBlob = await entry.async("blob");
+      const blob = normalizeImportedBlob(rawBlob, extension);
+
+      return {
+        fileName: parsed.baseName,
+        blob,
+        padNumber: parsed.padNumber,
+        padName: parsed.padName,
+        extension,
+        kind: "recording",
+      };
+    }),
+  );
+
+  assignImportedItems(items);
+}
+
+async function importFromFolder(fileList) {
+  const items = Array.from(fileList)
+    .filter((file) => file.type.startsWith("audio/") || isAudioLikeFileName(file.name))
+    .map((file) => {
+      const parsed = parsePadFileName(file.name);
+      const extension =
+        parsed.extension ||
+        getExtensionFromName(file.name) ||
+        inferExtensionFromMimeType(file.type) ||
+        "webm";
+
+      return {
+        fileName: parsed.baseName,
+        blob: file,
+        padNumber: parsed.padNumber,
+        padName: parsed.padName,
+        extension,
+        kind: "recording",
+      };
+    })
+    .sort((a, b) => a.fileName.localeCompare(b.fileName, "ja"));
+
+  assignImportedItems(items);
 }
 
 async function togglePlayback(state) {
@@ -548,6 +766,48 @@ padCountSelect.addEventListener("change", () => {
 stopAllButton.addEventListener("click", stopAll);
 saveRecordingsButton.addEventListener("click", exportRecordedPads);
 micToggleButton.addEventListener("click", toggleMicConnection);
+loadZipButton.addEventListener("click", () => {
+  zipInput.click();
+});
+loadFolderButton.addEventListener("click", () => {
+  folderInput.click();
+});
+
+zipInput.addEventListener("change", async (event) => {
+  const zipFile = event.target.files?.[0];
+  event.target.value = "";
+  if (!zipFile) return;
+
+  loadZipButton.disabled = true;
+  loadFolderButton.disabled = true;
+
+  try {
+    await importFromZipFile(zipFile);
+  } catch (_error) {
+    window.alert("ZIP読み込みに失敗しました。ZIP形式を確認してください。");
+  } finally {
+    loadZipButton.disabled = false;
+    loadFolderButton.disabled = false;
+  }
+});
+
+folderInput.addEventListener("change", async (event) => {
+  const files = event.target.files;
+  event.target.value = "";
+  if (!files?.length) return;
+
+  loadZipButton.disabled = true;
+  loadFolderButton.disabled = true;
+
+  try {
+    await importFromFolder(files);
+  } catch (_error) {
+    window.alert("フォルダ読み込みに失敗しました。");
+  } finally {
+    loadZipButton.disabled = false;
+    loadFolderButton.disabled = false;
+  }
+});
 
 window.addEventListener("beforeunload", () => {
   clearPads();
