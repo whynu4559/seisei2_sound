@@ -15,77 +15,20 @@
   <body>
     <main class="app">
       <header class="hero">
-        <p class="eyebrow">MIDI Pad Inspired</p>
+        <p class="eyebrow">Fixed Sound Pad</p>
         <h1>Loop Pad</h1>
         <p class="subtitle">
-          ボタンごとに音源を割り当てて、ワンタップで再生。ループも切り替えできます。
+          s1/s2/s3タブで切り替えて、ワンタップで再生できます。
         </p>
       </header>
 
       <section class="controls" aria-label="global controls">
-        <label class="slot-control">
-          パッド数
-          <select id="pad-count">
-            <option value="4">4</option>
-            <option value="8" selected>8</option>
-            <option value="12">12</option>
-            <option value="16">16</option>
-            <option value="24">24</option>
-            <option value="32">32</option>
-          </select>
-        </label>
-        <button id="mic-toggle" type="button">マイク接続</button>
+        <div id="tab-list" class="tab-list" role="tablist" aria-label="sound tabs"></div>
         <button id="stop-all" type="button" class="danger">全停止</button>
-        <button id="save-recordings" type="button">録音を一括保存</button>
-        <button id="load-zip" type="button">ZIP読み込み</button>
-        <button id="load-folder" type="button">フォルダ読み込み</button>
-        <input id="zip-input" type="file" accept=".zip,application/zip" hidden />
-        <input
-          id="folder-input"
-          type="file"
-          accept="audio/*"
-          webkitdirectory
-          multiple
-          hidden
-        />
       </section>
 
       <section id="pad-grid" class="pad-grid" aria-label="pad grid"></section>
     </main>
-
-    <template id="pad-template">
-      <article class="pad-card">
-        <button type="button" class="pad-button">Pad</button>
-        <div class="pad-meta">
-          <label class="name-label">
-            パッド名
-            <input
-              type="text"
-              class="name-input"
-              maxlength="24"
-              placeholder="例: Kick"
-            />
-          </label>
-          <label class="file-label">
-            音源を割り当て
-            <input type="file" class="file-input" accept="audio/*" />
-          </label>
-          <div class="record-row">
-            <button type="button" class="record-button">録音開始</button>
-          </div>
-          <label class="loop-toggle">
-            <input type="checkbox" class="loop-input" />
-            ループ
-          </label>
-          <p class="status">未設定</p>
-        </div>
-      </article>
-    </template>
-
-    <script
-      src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
-      defer
-    ></script>
     <script src="./script.js" defer></script>
   </body>
 </html>
